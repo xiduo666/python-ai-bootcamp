@@ -1,21 +1,38 @@
 import requests
 
-params = {
-    "q": "security",
-    "per_page": 5
-}
-response = requests.get("https://api.github.com/search/repositories", params=params)
 
-response_data = response.json()
+def search_github(keyword, count):
+    params = {
+        "q": keyword,
+        "per_page": count
+    }
 
-# 铁律：先查状态码再解析
-if response.status_code != 200:
-    print(f"请求失败，状态码{response.status_code}")
-    print(response_data.get("message", "无详细信息"))
-else:
-    for data in response_data["items"]:
-        data_name = data["name"]
-        data_stargazers_count = data["stargazers_count"]
-        data_html_url = data["html_url"]
+    response = requests.get("https://api.github.com/search/repositories", params=params)
 
-        print(f"{data_name} | {data_stargazers_count} | {data_html_url}")
+    response_data = response.json()
+
+    if response.status_code != 200:
+        return {
+            "success": False,
+            "status_code": response.status_code,
+            "message": response_data.get("message", "无详细信息"),
+            "data": []
+        }
+
+    return {
+        "success": True,
+        "status_code": response.status_code,
+        "message": "",
+        "data": [
+            {
+                "name": data["name"],
+                "stargazers_count": data["stargazers_count"],
+                "html_url": data["html_url"]
+            }
+            for data in response_data["items"]
+        ]
+    }
+
+
+result = search_github("security", 5)
+print(result)
